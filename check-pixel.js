@@ -286,6 +286,8 @@ async function checkSiteBrowser(rawUrl, browser) {
     };
   } catch (err) {
     return { present: false, pixelId: null, pixelIds: [], events: [], eventDetails: null, viaGTM: false, warnings: [], error: err.message, browserChecked: true };
+  } finally {
+    await page.close().catch(() => {});
   }
 }
 
