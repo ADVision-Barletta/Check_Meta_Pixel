@@ -4,6 +4,10 @@
   "description": "Controllo giornaliero presenza Meta Pixel su siti web",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "node check-pixel.js",
+    "test": "node --test test/*.test.js"
+  },
   "dependencies": {
     "puppeteer-core": "^25.1.0"
   }
