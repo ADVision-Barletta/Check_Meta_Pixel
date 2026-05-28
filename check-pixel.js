@@ -183,8 +183,11 @@ async function checkSiteBrowser(rawUrl, browser) {
     });
 
     await page.goto(rawUrl, { waitUntil: 'networkidle0', timeout: TIMEOUT_MS }).catch(() => {});
-    // Wait extra time for GTM to initialize and fire tags
-    await new Promise((r) => setTimeout(r, 3000));
+    // Wait for fbq to fire (up to 3s max), proceed as soon as it does
+    await Promise.race([
+      page.waitForFunction(() => window.__fbqCalls?.length > 0, { timeout: 3000 }),
+      new Promise((r) => setTimeout(r, 3000)),
+    ]).catch(() => {});
 
     // Extract intercepted fbq calls
     const fbqCalls = await page.evaluate(() => {
