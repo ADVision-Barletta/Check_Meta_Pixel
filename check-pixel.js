@@ -485,7 +485,7 @@ async function main() {
   console.log(`Controllo ${sites.length} siti...`);
 
   // Phase 1: static check (parallel, fast)
-  const results = await Promise.all(sites.map(checkSite));
+  const results = await concurrencyMap(sites, checkSite, 10);
 
   // Phase 2: browser check for sites with dynamic loaders (sequential, shared browser)
   const needBrowser = results.filter(
