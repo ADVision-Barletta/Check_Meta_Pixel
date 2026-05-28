@@ -207,14 +207,20 @@ async function checkSiteBrowser(rawUrl, browser) {
       const calls = window.__fbqCalls || [];
       let pixelId = null;
       const evts = [];
+      const evtParams = {};
       for (const c of calls) {
         if (c[0] === 'init' && c[1]) pixelId = c[1];
-        if (c[0] === 'track' && c[1]) evts.push(c[1]);
-        // trackSingle signature: fbq('trackSingle', pixelId, eventName, params)
-        if (c[0] === 'trackSingle' && c[2]) evts.push(c[2]);
+        if (c[0] === 'track' && c[1]) {
+          evts.push(c[1]);
+          if (c[2] && typeof c[2] === 'object') evtParams[c[1]] = c[2];
+        }
+        if (c[0] === 'trackSingle' && c[2]) {
+          evts.push(c[2]);
+          if (c[3] && typeof c[3] === 'object') evtParams[c[2]] = c[3];
+        }
       }
-      return { pixelId, events: evts, callCount: calls.length };
-    }).catch(() => ({ pixelId: null, events: [], callCount: 0 }));
+      return { pixelId, events: evts, callCount: calls.length, eventDetails: Object.keys(evtParams).length > 0 ? evtParams : null };
+    }).catch(() => ({ pixelId: null, events: [], callCount: 0, eventDetails: null }));
 
     if (fbqCalls.pixelId) pixelIds.add(fbqCalls.pixelId);
     fbqCalls.events.forEach((e) => events.add(e));
