@@ -227,7 +227,7 @@ async function checkSiteBrowser(rawUrl, browser) {
       const evtParams = {};
       for (const c of calls) {
         if (c[0] === 'init' && c[1]) pixelId = c[1];
-        if (c[0] === 'track' && c[1]) {
+        if ((c[0] === 'track' || c[0] === 'trackCustom') && c[1]) {
           evts.push(c[1]);
           if (c[2] && typeof c[2] === 'object') evtParams[c[1]] = c[2];
         }
