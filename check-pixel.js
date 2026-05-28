@@ -97,6 +97,7 @@ function detectPixel(html) {
     multiplePixelIds,
     inHead,
     viaGTM,
+    dynamicLoader,
     hasCAPI,
     advancedMatching,
     usesHTTPS,
