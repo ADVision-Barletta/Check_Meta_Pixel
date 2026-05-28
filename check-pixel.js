@@ -110,15 +110,8 @@ function getChromePath() {
   return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 }
 
-async function checkSiteBrowser(rawUrl) {
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      executablePath: getChromePath(),
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
-    const page = await browser.newPage();
+async function checkSiteBrowser(rawUrl, browser) {
+  const page = await browser.newPage();
 
     // Intercept fbq calls before page loads
     await page.evaluateOnNewDocument(() => {
