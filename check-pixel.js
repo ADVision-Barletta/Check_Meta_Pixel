@@ -279,8 +279,8 @@ async function checkSite(rawUrl) {
   }
 }
 
-async function loadSites() {
-  const raw = readFileSync(SITES_FILE, 'utf-8');
+async function loadSites(sitesFile) {
+  const raw = readFileSync(sitesFile || SITES_FILE, 'utf-8');
   return raw
     .split('\n')
     .map((l) => l.trim().replace(/['"]/g, ''))
