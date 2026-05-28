@@ -373,6 +373,12 @@ function printReport(results, { dateStr, timeStr }) {
       info.push(`ID: ${r.pixelId || '?'}`);
       info.push(`HTTP ${r.status}`);
       if (r.events?.length) info.push(`eventi: ${r.events.join(', ')}`);
+      if (r.eventDetails) {
+        const summary = Object.entries(r.eventDetails)
+          .map(([ev, p]) => `${ev}{${Object.keys(p).join(',')}}`)
+          .join(' ');
+        info.push(`params: ${summary}`);
+      }
       if (r.viaGTM) info.push('via GTM');
       if (r.advancedMatching) info.push('Advanced Matching');
       if (r.hasCAPI) info.push('CAPI');
