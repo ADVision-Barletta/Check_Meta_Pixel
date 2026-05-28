@@ -287,15 +287,23 @@ async function checkSite(rawUrl) {
     return { url: rawUrl, status: 0, reachable: false, present: false, error: `Dominio irraggiungibile: ${parsed.hostname}`, warnings: [] };
   }
 
+  async function doFetch(signal) {
+    return fetch(rawUrl, {
+      signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MetaPixelChecker/1.0)' },
+      redirect: 'follow',
+    });
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const res = await fetch(rawUrl, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MetaPixelChecker/1.0)' },
-      redirect: 'follow',
-    });
+    let res = await doFetch(controller.signal);
+    if (res.status === 503) {
+      await new Promise((r) => setTimeout(r, 3000));
+      res = await doFetch(controller.signal);
+    }
     const html = await res.text();
     const pixel = detectPixel(html);
 
