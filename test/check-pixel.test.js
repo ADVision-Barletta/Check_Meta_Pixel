@@ -49,7 +49,8 @@ fbq('track', 'PageView');
       end++;
     }
     const raw = html.slice(start, end);
-    const params = JSON.parse(raw.replace(/'/g, '"'));
+    const clean = raw.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":').replace(/'/g, '"');
+    const params = JSON.parse(clean);
     assert.equal('em' in params, true);
     assert.equal('ph' in params, true);
   });
