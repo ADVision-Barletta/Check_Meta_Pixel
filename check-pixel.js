@@ -132,6 +132,19 @@ function detectPixel(html) {
   };
 }
 
+async function concurrencyMap(arr, fn, limit = 5) {
+  const results = [];
+  const running = new Set();
+  for (const item of arr) {
+    const p = fn(item).then((r) => { results.push(r); return r; });
+    running.add(p);
+    p.finally(() => running.delete(p));
+    if (running.size >= limit) await Promise.race(running);
+  }
+  await Promise.all(running);
+  return results;
+}
+
 function formatSite(url) {
   return url
     .replace(/^https?:\/\//, '')
