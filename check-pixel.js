@@ -441,7 +441,7 @@ function printReport(results, { dateStr, timeStr }) {
 
   const line = '─'.repeat(50);
   const reportDir = new URL('.', import.meta.url).pathname;
-  ln(`\n${line}\nReport salvato in logs/${dateStr}.json e ${dateStr}.txt\n`);
+  ln(`\n${line}\nReport salvato in logs/${dateStr}.jsonl e ${dateStr}.txt\n`);
 
   const text = l.join('\n');
   console.log(text);
