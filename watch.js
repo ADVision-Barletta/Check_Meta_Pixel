@@ -18,7 +18,7 @@ watch(DIR, { recursive: true }, (event, file) => {
       const changed = execSync('git diff --name-only --cached', { cwd: DIR, encoding: 'utf-8' })
         .trim().split('\n').filter(Boolean).join(', ');
       const msg = changed ? `auto: ${changed}` : 'auto: update';
-      execSync(`git commit -m "${msg}" --no-verify`, { cwd: DIR, stdio: 'pipe' });
+      execSync('git commit -F - --no-verify', { cwd: DIR, stdio: 'pipe', input: msg });
       const remotes = execSync('git remote -v', { cwd: DIR, encoding: 'utf-8' }).trim();
       if (remotes) {
         execSync('git push', { cwd: DIR, stdio: 'pipe' });
