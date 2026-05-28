@@ -51,7 +51,7 @@ function detectPixel(html) {
 
   // --- Events (PageView, Purchase, Lead, AddToCart, etc.) ---
   const eventMatches = [...html.matchAll(/fbq\s*\(\s*['"](?:track|trackSingle)['"]\s*,\s*['"]([^'"]+)['"]/ig)];
-  const events = [...new Set(eventMatches.map((m) => m[1]))];
+  const events = [...new Set(eventMatches.map((m) => m[1]).filter((e) => KNOWN_EVENTS.has(e) || !/^\d+$/.test(e)))];
 
   // --- GTM detection ---
   const viaGTM = /googletagmanager\.com/i.test(html);
