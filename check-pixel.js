@@ -172,8 +172,8 @@ function getChromePath() {
 }
 
 async function checkSiteBrowser(rawUrl, browser) {
-  try {
     const page = await browser.newPage();
+    try {
 
     // Intercept fbq calls before page loads
     await page.evaluateOnNewDocument(() => {
