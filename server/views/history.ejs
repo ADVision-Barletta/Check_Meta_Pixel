@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta Pixel Check — Cronologia</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav>
+  <span>Meta Pixel Check</span>
+  <div>
+    <a href="/">Dashboard</a>
+    <a href="/history" class="active">Cronologia</a>
+    <span class="user"><%= user %></span>
+  </div>
+</nav>
+
+<main>
+  <div class="scan-bar">
+    <span>Seleziona uno scan per i dettagli</span>
+  </div>
+
+  <div class="cols">
+    <div class="col-list">
+      <h2>Scan</h2>
+      <table>
+        <tr><th>#</th><th>Data</th><th>Siti</th><th>✅</th></tr>
+        <% logs.forEach(function(l) { %>
+        <tr class="<%= l.index === scanIndex ? 'active' : '' %>">
+          <td><a href="?scan=<%= l.index %>"><%= l.index + 1 %></a></td>
+          <td><a href="?scan=<%= l.index %>"><%= l.time %></a></td>
+          <td><%= l.count %></td>
+          <td><%= l.found %></td>
+        </tr>
+        <% }); %>
+      </table>
+    </div>
+
+    <div class="col-detail">
+      <h2>Dettagli scan</h2>
+      <% if (scan) { %>
+      <p>Eseguito il: <strong><%= scan.time %></strong></p>
+      <table>
+        <tr><th>Sito</th><th>Stato</th><th>Pixel ID</th><th>Eventi</th><th>Note</th></tr>
+        <% scan.results.forEach(function(r) { %>
+        <tr class="<%= r.present ? 'ok' : 'ko' %>">
+          <td><%= r.url?.replace(/^https?:\/\//, '').replace(/^www\./, '') %></td>
+          <td><%= r.present ? '✅' : '❌' %></td>
+          <td><%= r.pixelId || '—' %></td>
+          <td><%= (r.events || []).join(', ') || '—' %></td>
+          <td><%= r.note || (r.warnings?.length ? r.warnings.join(', ') : '') %></td>
+        </tr>
+        <% }); %>
+      </table>
+      <% } else { %>
+      <p class="muted">Nessuno scan disponibile</p>
+      <% } %>
+    </div>
+  </div>
+</main>
+</body>
+</html>
