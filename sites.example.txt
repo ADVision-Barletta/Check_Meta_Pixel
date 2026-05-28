@@ -1,0 +1,5 @@
+# Inserisci qui i tuoi siti (uno per riga)
+# Copia questo file come sites.txt e modificalo
+# Esempio:
+# https://www.miosito.it
+# https://www.altrosito.com

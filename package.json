@@ -1,0 +1,10 @@
+{
+  "name": "check-meta-pixel",
+  "version": "1.0.0",
+  "description": "Controllo giornaliero presenza Meta Pixel su siti web",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "puppeteer-core": "^25.1.0"
+  }
+}
