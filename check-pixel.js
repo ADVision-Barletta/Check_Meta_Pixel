@@ -79,7 +79,7 @@ function detectPixel(html) {
 
   // --- HTTPS check ---
   const pixelUrls = [...html.matchAll(/https?:\/\/connect\.facebook\.net[^"'\s]*/g)];
-  const usesHTTPS = pixelUrls.length === 0 || pixelUrls.every((u) => u[0].indexOf('https://') === 0);
+  const usesHTTPS = pixelUrls.length === 0 ? null : pixelUrls.every((u) => u[0].startsWith('https://'));
 
   const warnings = [];
   if (present) {
