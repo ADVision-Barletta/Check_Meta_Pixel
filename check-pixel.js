@@ -73,7 +73,9 @@ function detectPixel(html) {
     || /cdn\.ampproject\.org/i.test(html);
 
   // --- Conversions API (CAPI) references ---
-  const hasCAPI = /graph\.facebook\.com/i.test(html);
+  const hasCAPI = /facebook\.com\/v\d+\.\d+\/\d+\/events/.test(html)
+    || /graph\.facebook\.com.*access_token=/.test(html)
+    || /facebook\.com\/v\d+\.\d+\/\d+\/events/i.test(html);
 
   // --- Advanced Matching params ---
   // --- Advanced Matching (robust brace-balancing) ---
