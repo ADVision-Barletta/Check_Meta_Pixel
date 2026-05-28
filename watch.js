@@ -19,8 +19,13 @@ watch(DIR, { recursive: true }, (event, file) => {
         .trim().split('\n').filter(Boolean).join(', ');
       const msg = changed ? `auto: ${changed}` : 'auto: update';
       execSync(`git commit -m "${msg}" --no-verify`, { cwd: DIR, stdio: 'pipe' });
-      execSync('git push', { cwd: DIR, stdio: 'pipe' });
-      console.log(`[auto] ✅ Pushato su GitHub (${changed || 'nessuna modifica'})`);
+      const remotes = execSync('git remote -v', { cwd: DIR, encoding: 'utf-8' }).trim();
+      if (remotes) {
+        execSync('git push', { cwd: DIR, stdio: 'pipe' });
+        console.log(`[auto] ✅ Pushato su GitHub (${changed || 'nessuna modifica'})`);
+      } else {
+        console.log(`[auto] ✅ Committato (nessun remote configurato, push saltato)`);
+      }
     } catch (e) {
       const msg = e.stderr?.toString() || e.message || '';
       if (!msg.includes('nothing to commit') && !msg.includes('Everything up-to-date')) {
