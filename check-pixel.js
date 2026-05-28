@@ -86,7 +86,7 @@ function detectPixel(html) {
     if (duplicate) warnings.push('Pixel ID duplicato');
     if (multiplePixelIds) warnings.push(`ID pixel multipli: ${uniqueIds.join(', ')}`);
     if (!inHead) warnings.push('Pixel dopo </head>');
-    if (!usesHTTPS && pixelUrls.length > 0) warnings.push('HTTP invece di HTTPS');
+    if (usesHTTPS === false) warnings.push('HTTP invece di HTTPS');
   }
 
   return {
