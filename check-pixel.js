@@ -451,7 +451,7 @@ async function main() {
   const dateStr = now.toISOString().slice(0, 10);
   const timeStr = now.toISOString().slice(11, 19);
   const reportText = printReport(results, { dateStr, timeStr });
-  logReport(results, reportText);
+  logReport(results, reportText, flags.logDir);
 }
 
 main();
