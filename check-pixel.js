@@ -53,6 +53,18 @@ function detectPixel(html) {
   const eventMatches = [...html.matchAll(/fbq\s*\(\s*['"](?:track|trackSingle)['"]\s*,\s*['"]([^'"]+)['"]/ig)];
   const events = [...new Set(eventMatches.map((m) => m[1]).filter((e) => KNOWN_EVENTS.has(e) || !/^\d+$/.test(e)))];
 
+  // --- Event parameters (content_name, value, currency, etc.) ---
+  const eventDetails = {};
+  const paramBlocks = [...html.matchAll(/fbq\s*\(\s*['"](track|trackSingle)['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\s*\)/ig)];
+  for (const m of paramBlocks) {
+    const [, callType, evName, raw] = m;
+    if (!KNOWN_EVENTS.has(evName)) continue;
+    try {
+      const cleaned = raw.replace(/'/g, '"').replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+      eventDetails[evName] = JSON.parse(cleaned);
+    } catch { /* skip parse errors */ }
+  }
+
   // --- GTM detection ---
   const viaGTM = /googletagmanager\.com/i.test(html);
   const dynamicLoader = viaGTM
