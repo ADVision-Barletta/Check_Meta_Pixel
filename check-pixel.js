@@ -165,7 +165,8 @@ async function checkSiteBrowser(rawUrl, browser) {
         const idMatch = u.match(/[?&]id=(\d+)/);
         if (idMatch) pixelIds.add(idMatch[1]);
         const evMatch = u.match(/[?&]ev=([^&]+)/);
-        if (evMatch) events.add(decodeURIComponent(evMatch[1]));
+        const ev = decodeURIComponent(evMatch[1]);
+        if (KNOWN_EVENTS.has(ev) || !/^\d+$/.test(ev)) events.add(ev);
       }
 
       // fbevents.js loading
