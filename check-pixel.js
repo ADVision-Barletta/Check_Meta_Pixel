@@ -55,6 +55,10 @@ function detectPixel(html) {
 
   // --- GTM detection ---
   const viaGTM = /googletagmanager\.com/i.test(html);
+  const dynamicLoader = viaGTM
+    || /tealiumiq\.com/i.test(html)
+    || /assets\.adobedtm\.com/i.test(html)
+    || /cdn\.ampproject\.org/i.test(html);
 
   // --- Conversions API (CAPI) references ---
   const hasCAPI = /graph\.facebook\.com/i.test(html);
