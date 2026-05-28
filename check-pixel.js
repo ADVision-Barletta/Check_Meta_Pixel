@@ -50,12 +50,12 @@ function detectPixel(html) {
   const inHead = initIndex !== -1 && headCloseIndex !== -1 && initIndex < headCloseIndex;
 
   // --- Events (PageView, Purchase, Lead, AddToCart, etc.) ---
-  const eventMatches = [...html.matchAll(/fbq\s*\(\s*['"](?:track|trackSingle)['"]\s*,\s*['"]([^'"]+)['"]/ig)];
+  const eventMatches = [...html.matchAll(/fbq\s*\(\s*['"](?:track|trackSingle|trackCustom)['"]\s*,\s*['"]([^'"]+)['"]/ig)];
   const events = [...new Set(eventMatches.map((m) => m[1]).filter((e) => KNOWN_EVENTS.has(e) || !/^\d+$/.test(e)))];
 
   // --- Event parameters (content_name, value, currency, etc.) ---
   const eventDetails = {};
-  const paramBlocks = [...html.matchAll(/fbq\s*\(\s*['"](track|trackSingle)['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\s*\)/ig)];
+  const paramBlocks = [...html.matchAll(/fbq\s*\(\s*['"](track|trackSingle|trackCustom)['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*(\{[^}]+\})\s*\)/ig)];
   for (const m of paramBlocks) {
     const [, callType, evName, raw] = m;
     if (!KNOWN_EVENTS.has(evName)) continue;
