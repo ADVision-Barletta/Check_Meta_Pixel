@@ -317,7 +317,7 @@ function logReport(results, reportText) {
     try { log = JSON.parse(readFileSync(jsonFile, 'utf-8')); } catch { /* skip */ }
   }
   log.push(entry);
-  appendFileSync(jsonFile, JSON.stringify([entry], null, 2) + '\n');
+  writeFileSync(jsonFile, JSON.stringify(log, null, 2) + '\n');
 
   // TXT (human readable)
   const txtFile = join(LOG_DIR, `${dateStr}.txt`);
