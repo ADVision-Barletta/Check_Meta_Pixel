@@ -5,6 +5,14 @@ import { resolve4 } from 'node:dns/promises';
 import puppeteer from 'puppeteer-core';
 import { execFileSync } from 'node:child_process';
 
+const KNOWN_EVENTS = new Set([
+  'PageView', 'ViewContent', 'AddToCart', 'AddToWishlist',
+  'InitiateCheckout', 'AddPaymentInfo', 'Purchase', 'Lead',
+  'CompleteRegistration', 'Search', 'Contact', 'Donate',
+  'FindLocation', 'Schedule', 'StartTrial', 'SubmitApplication',
+  'Subscribe',
+]);
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITES_FILE = join(__dirname, 'sites.txt');
 const LOG_DIR = join(__dirname, 'logs');
