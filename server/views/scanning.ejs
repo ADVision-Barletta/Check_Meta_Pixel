@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta Pixel Check — Scansione in corso</title>
+<link rel="stylesheet" href="/style.css">
+<meta http-equiv="refresh" content="5">
+</head>
+<body>
+<nav>
+  <span>Meta Pixel Check</span>
+  <div>
+    <a href="/">Dashboard</a>
+    <a href="/history">Cronologia</a>
+    <span class="user"><%= user %></span>
+  </div>
+</nav>
+
+<main class="center">
+  <div class="spinner"></div>
+  <h2>Scansione in corso...</h2>
+  <p>La scansione è iniziata in background.</p>
+  <p>Questa pagina si aggiorna ogni 5 secondi.</p>
+  <form action="/scan" method="post" style="margin-top: 1rem">
+    <button type="submit">🔄 Riavvia scansione</button>
+  </form>
+
+  <% if (lastResults.length) { %>
+  <h3 style="margin-top: 2rem">Risultati ultimo scan completato</h3>
+  <table>
+    <tr><th>Sito</th><th>Pixel</th><th>Stato</th></tr>
+    <% lastResults.forEach(function(r) { %>
+    <tr class="<%= r.present ? 'ok' : 'ko' %>">
+      <td><%= r.url?.replace(/^https?:\/\//, '').replace(/^www\./, '') %></td>
+      <td><%= r.pixelId || '—' %></td>
+      <td><%= r.present ? '✅' : '❌' %></td>
+    </tr>
+    <% }); %>
+  </table>
+  <% } %>
+</main>
+</body>
+</html>
