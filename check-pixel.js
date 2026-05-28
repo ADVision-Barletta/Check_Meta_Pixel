@@ -371,8 +371,30 @@ function printReport(results, { dateStr, timeStr }) {
   return text;
 }
 
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const flags = { sitesFile: SITES_FILE, timeout: TIMEOUT_MS, logDir: LOG_DIR };
+  for (let i = 0; i < args.length; i++) {
+    switch (args[i]) {
+      case '--sites': flags.sitesFile = join(__dirname, args[++i] || ''); break;
+      case '--timeout': flags.timeout = parseInt(args[++i]) || TIMEOUT_MS; break;
+      case '--output': flags.logDir = join(__dirname, args[++i] || ''); break;
+      case '--help':
+        console.log(`Usage: node check-pixel.js [options]
+
+  --sites <file>    Lista siti (default: sites.txt)
+  --timeout <ms>    Timeout fetch per sito (default: 15000)
+  --output <dir>    Cartella report (default: logs/)
+  --help            Mostra questo aiuto`);
+        process.exit(0);
+    }
+  }
+  return flags;
+}
+
 async function main() {
-  const sites = await loadSites();
+  const flags = parseArgs();
+  const sites = await loadSites(flags.sitesFile);
   if (sites.length === 0) {
     console.log('Nessun sito da controllare. Aggiungi URL in sites.txt');
     return;
