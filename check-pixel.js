@@ -13,6 +13,8 @@ const KNOWN_EVENTS = new Set([
   'Subscribe',
 ]);
 
+const isValidEvent = (name) => KNOWN_EVENTS.has(name) || !/^\d+$/.test(name);
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITES_FILE = join(__dirname, 'sites.txt');
 const LOG_DIR = join(__dirname, 'logs');
@@ -242,8 +244,8 @@ async function checkSiteBrowser(rawUrl, browser) {
     await page.goto(rawUrl, { waitUntil: 'networkidle0', timeout: TIMEOUT_MS }).catch(() => {});
     // Wait for fbq to fire (up to 3s max), proceed as soon as it does
     await Promise.race([
-      page.waitForFunction(() => window.__fbqCalls?.length > 0, { timeout: 3000 }),
-      new Promise((r) => setTimeout(r, 3000)),
+      page.waitForFunction(() => window.__fbqCalls?.length > 0, { timeout: 2000 }),
+      new Promise((r) => setTimeout(r, 2000)),
     ]).catch(() => {});
 
     // Extract intercepted fbq calls
