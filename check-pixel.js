@@ -53,7 +53,7 @@ function detectPixel(html) {
 
   // --- Events (PageView, Purchase, Lead, AddToCart, etc.) ---
   const eventMatches = [...html.matchAll(/fbq\s*\(\s*['"](?:track|trackSingle|trackCustom)['"]\s*,\s*['"]([^'"]+)['"]/ig)];
-  const events = [...new Set(eventMatches.map((m) => m[1]).filter((e) => KNOWN_EVENTS.has(e) || !/^\d+$/.test(e)))];
+  const events = [...new Set(eventMatches.map((m) => m[1]).filter(isValidEvent))];
 
   // --- Event parameters (content_name, value, currency, etc.) ---
   const eventDetails = {};
