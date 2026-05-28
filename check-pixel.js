@@ -28,7 +28,7 @@ function detectPixel(html) {
 
   // --- Pixel ID extraction ---
   const idMatch = html.match(/fbq\s*\(\s*['"]init['"]\s*,\s*['"]([^'"]+)['"]/i);
-  const pixelId = idMatch ? idMatch[1] : null;
+  const pixelId = idMatch && /^\d{13,16}$/.test(idMatch[1]) ? idMatch[1] : null;
 
   // --- Multiple / duplicate pixel IDs ---
   const allIds = [...html.matchAll(/fbq\s*\(\s*['"]init['"]\s*,\s*['"]([^'"]+)['"]/ig)];
