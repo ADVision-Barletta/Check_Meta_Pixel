@@ -354,24 +354,62 @@ function printReport(results, { dateStr, timeStr }) {
 }
 
 async function main() {
-  try {
-    const sites = await loadSites();
-    if (sites.length === 0) {
-      console.log('Nessun sito da controllare. Aggiungi URL in sites.txt');
-      return;
-    }
-
-    console.log(`Controllo ${sites.length} siti...`);
-    const results = await Promise.all(sites.map(checkSite));
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0, 10);
-    const timeStr = now.toISOString().slice(11, 19);
-    const reportText = printReport(results, { dateStr, timeStr });
-    logReport(results, reportText);
-  } catch (err) {
-    console.error('Errore:', err.message);
-    process.exit(1);
+  const sites = await loadSites();
+  if (sites.length === 0) {
+    console.log('Nessun sito da controllare. Aggiungi URL in sites.txt');
+    return;
   }
+
+  console.log(`Controllo ${sites.length} siti...`);
+
+  // Phase 1: static check (parallel, fast)
+  const results = await Promise.all(sites.map(checkSite));
+
+  // Phase 2: browser check for GTM sites (sequential, shared browser)
+  const needBrowser = results.filter(
+    (r) => !r.present && r.viaGTM && r.status < 400 && r.status > 0,
+  );
+
+  if (needBrowser.length > 0) {
+    console.log(`\n🔍 Check browser per ${needBrowser.length} siti con GTM...`);
+    let browser;
+    try {
+      browser = await puppeteer.launch({
+        executablePath: getChromePath(),
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+      });
+
+      for (const r of needBrowser) {
+        process.stdout.write(`   ${formatSite(r.url)}...`);
+        const b = await checkSiteBrowser(r.url, browser);
+        Object.assign(r, b, { viaGTM: true });
+        r.note = b.present
+          ? `Rilevato via browser: Pixel ID ${b.pixelId || '?'}`
+          : b.error
+            ? `Browser check fallito: ${b.error}`
+            : 'Caricamento dinamico confermato ma pixel non rilevato';
+        console.log(b.present ? ' ✅' : ' ❌');
+      }
+    } finally {
+      if (browser) await browser.close();
+    }
+  }
+
+  // Set final notes for remaining sites
+  for (const r of results) {
+    if (!r.present && !r.note) {
+      r.note = r.status >= 400
+        ? `HTTP ${r.status} — risposta non valida, pixel non verificabile`
+        : null;
+    }
+  }
+
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10);
+  const timeStr = now.toISOString().slice(11, 19);
+  const reportText = printReport(results, { dateStr, timeStr });
+  logReport(results, reportText);
 }
 
 main();
