@@ -16,8 +16,14 @@ watch(DIR, { recursive: true }, (event, file) => {
     try {
       execSync('git add -A', { cwd: DIR, stdio: 'pipe' });
       execSync('git commit -m "auto: update" --no-verify', { cwd: DIR, stdio: 'pipe' });
+      execSync('git push', { cwd: DIR, stdio: 'pipe' });
       console.log('[auto] ✅ Pushato su GitHub');
-    } catch { /* nessuna modifica da committare */ }
+    } catch (e) {
+      const msg = e.stderr?.toString() || e.message || '';
+      if (!msg.includes('nothing to commit') && !msg.includes('Everything up-to-date')) {
+        console.log(`[auto] ⚠️ ${msg.slice(0, 200)}`);
+      }
+    }
   }, DEBOUNCE);
 });
 
