@@ -128,12 +128,29 @@ function formatSite(url) {
 }
 
 function getChromePath() {
+  if (process.platform === 'win32') {
+    try {
+      const out = execFileSync('reg', ['query', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe', '/ve'], { encoding: 'utf-8', timeout: 5000 });
+      const match = out.match(/REG_SZ\s+(.+)/);
+      if (match) return match[1].trim();
+    } catch { /* fallback */ }
+    return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+  }
+  if (process.platform === 'darwin') {
+    const paths = [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chrome.app/Contents/MacOS/Chrome',
+    ];
+    for (const p of paths) {
+      try { execFileSync('test', ['-f', p], { timeout: 1000 }); return p; } catch {}
+    }
+    return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  }
   try {
-    const out = execFileSync('reg', ['query', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe', '/ve'], { encoding: 'utf-8', timeout: 5000 });
-    const match = out.match(/REG_SZ\s+(.+)/);
-    if (match) return match[1].trim();
-  } catch { /* fallback */ }
-  return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+    const out = execFileSync('which', ['google-chrome', 'chromium-browser', 'chromium'], { encoding: 'utf-8', timeout: 5000 });
+    return out.trim().split('\n')[0];
+  } catch {}
+  return 'google-chrome';
 }
 
 async function checkSiteBrowser(rawUrl, browser) {
