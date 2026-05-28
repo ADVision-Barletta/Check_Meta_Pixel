@@ -142,7 +142,7 @@ function getChromePath() {
       '/Applications/Chrome.app/Contents/MacOS/Chrome',
     ];
     for (const p of paths) {
-      try { execFileSync('test', ['-f', p], { timeout: 1000 }); return p; } catch {}
+      try { accessSync(p); return p; } catch {}
     }
     return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
   }
