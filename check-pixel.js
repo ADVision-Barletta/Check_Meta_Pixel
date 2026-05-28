@@ -240,7 +240,7 @@ async function checkSiteBrowser(rawUrl, browser) {
     }).catch(() => ({ pixelId: null, events: [], callCount: 0, eventDetails: null }));
 
     if (fbqCalls.pixelId) pixelIds.add(fbqCalls.pixelId);
-    fbqCalls.events.forEach((e) => events.add(e));
+    fbqCalls.events.forEach((e) => { if (KNOWN_EVENTS.has(e) || !/^\d+$/.test(e)) events.add(e); });
 
     // Also check page context for fbq presence
     const pageInfo = await page.evaluate(() => {
