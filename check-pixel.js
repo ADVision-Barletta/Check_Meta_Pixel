@@ -98,13 +98,7 @@ function detectPixel(html) {
       const params = JSON.parse(clean);
       const amKeys = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'zp', 'country', 'ct', 'db', 'ge'];
       advancedMatching = amKeys.some((k) => k in params);
-    } catch {
-      try {
-        const params = new Function(`return (${html.slice(start, end)})`)();
-        const amKeys = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'zp', 'country', 'ct', 'db', 'ge'];
-        advancedMatching = amKeys.some((k) => k in params);
-      } catch { /* skip */ }
-    }
+    } catch { /* skip */ }
   }
 
   // --- HTTPS check ---
