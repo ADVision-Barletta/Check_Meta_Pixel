@@ -211,8 +211,6 @@ async function checkSiteBrowser(rawUrl, browser) {
     };
   } catch (err) {
     return { present: false, pixelId: null, pixelIds: [], events: [], viaGTM: false, warnings: [], error: err.message, browserChecked: true };
-  } finally {
-    if (browser) await browser.close();
   }
 }
 
