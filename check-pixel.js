@@ -114,6 +114,7 @@ function detectPixel(html) {
     advancedMatching,
     usesHTTPS,
     events,
+    eventDetails: Object.keys(eventDetails).length > 0 ? eventDetails : null,
     warnings,
     details: presence,
   };
