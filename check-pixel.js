@@ -369,15 +369,10 @@ function logReport(results, reportText, logDir) {
   const dateStr = now.toISOString().slice(0, 10);
   const timeStr = now.toISOString().slice(11, 19);
 
-  // JSON (raw data)
-  const jsonFile = join(dir, `${dateStr}.json`);
+  // JSON (raw data) — JSON Lines format, O(1) append
+  const jsonFile = join(dir, `${dateStr}.jsonl`);
   const entry = { timestamp: now.toISOString(), results };
-  let log = [];
-  if (existsSync(jsonFile)) {
-    try { log = JSON.parse(readFileSync(jsonFile, 'utf-8')); } catch { /* skip */ }
-  }
-  log.push(entry);
-  writeFileSync(jsonFile, JSON.stringify(log, null, 2) + '\n');
+  appendFileSync(jsonFile, JSON.stringify(entry) + '\n');
 
   // TXT (human readable)
   const txtFile = join(dir, `${dateStr}.txt`);
