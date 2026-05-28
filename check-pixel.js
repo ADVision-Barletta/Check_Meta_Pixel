@@ -266,7 +266,7 @@ async function loadSites() {
   const raw = readFileSync(SITES_FILE, 'utf-8');
   return raw
     .split('\n')
-    .map((l) => l.trim())
+    .map((l) => l.trim().replace(/['"]/g, ''))
     .filter((l) => l && !l.startsWith('#'));
 }
 
