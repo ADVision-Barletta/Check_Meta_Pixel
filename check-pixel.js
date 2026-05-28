@@ -380,13 +380,13 @@ async function main() {
   // Phase 1: static check (parallel, fast)
   const results = await Promise.all(sites.map(checkSite));
 
-  // Phase 2: browser check for GTM sites (sequential, shared browser)
+  // Phase 2: browser check for sites with dynamic loaders (sequential, shared browser)
   const needBrowser = results.filter(
-    (r) => !r.present && r.viaGTM && r.status < 400 && r.status > 0,
+    (r) => !r.present && r.dynamicLoader && r.status < 400 && r.status > 0,
   );
 
   if (needBrowser.length > 0) {
-    console.log(`\n🔍 Check browser per ${needBrowser.length} siti con GTM...`);
+    console.log(`\n🔍 Check browser per ${needBrowser.length} siti (GTM o altri loader dinamici)...`);
     let browser;
     try {
       browser = await puppeteer.launch({
