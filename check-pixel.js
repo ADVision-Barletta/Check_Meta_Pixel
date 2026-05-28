@@ -16,7 +16,7 @@ const KNOWN_EVENTS = new Set([
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITES_FILE = join(__dirname, 'sites.txt');
 const LOG_DIR = join(__dirname, 'logs');
-const TIMEOUT_MS = 15_000;
+let TIMEOUT_MS = 15_000;
 
 function detectPixel(html) {
   const patterns = [
