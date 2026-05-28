@@ -287,15 +287,16 @@ async function loadSites(sitesFile) {
     .filter((l) => l && !l.startsWith('#'));
 }
 
-function logReport(results, reportText) {
-  if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
+function logReport(results, reportText, logDir) {
+  const dir = logDir || LOG_DIR;
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10);
   const timeStr = now.toISOString().slice(11, 19);
 
   // JSON (raw data)
-  const jsonFile = join(LOG_DIR, `${dateStr}.json`);
+  const jsonFile = join(dir, `${dateStr}.json`);
   const entry = { timestamp: now.toISOString(), results };
   let log = [];
   if (existsSync(jsonFile)) {
@@ -305,7 +306,7 @@ function logReport(results, reportText) {
   writeFileSync(jsonFile, JSON.stringify(log, null, 2) + '\n');
 
   // TXT (human readable)
-  const txtFile = join(LOG_DIR, `${dateStr}.txt`);
+  const txtFile = join(dir, `${dateStr}.txt`);
   appendFileSync(txtFile, reportText + '\n');
 
   return { dateStr, timeStr };
