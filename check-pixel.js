@@ -76,17 +76,30 @@ function detectPixel(html) {
   const hasCAPI = /graph\.facebook\.com/i.test(html);
 
   // --- Advanced Matching params ---
-  const initBlock = html.match(/fbq\s*\(\s*['"]init['"]\s*,\s*['"][^'"]+['"]\s*,\s*(\{[\s\S]*?\})/i);
+  // --- Advanced Matching (robust brace-balancing) ---
+  const amMatch = html.match(/fbq\s*\(\s*['"]init['"]\s*,\s*['"][^'"]+['"]\s*,\s*(\{)/i);
   let advancedMatching = false;
-  if (initBlock) {
+  if (amMatch) {
+    const start = amMatch.index + amMatch[0].length - 1;
+    let depth = 1;
+    let end = start + 1;
+    while (end < html.length && depth > 0) {
+      if (html[end] === '{') depth++;
+      else if (html[end] === '}') depth--;
+      end++;
+    }
     try {
-      const paramsStr = initBlock[1]
-        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
-        .replace(/'/g, '"');
-      const params = JSON.parse(paramsStr);
+      const raw = html.slice(start, end);
+      const params = JSON.parse(raw.replace(/'/g, '"'));
       const amKeys = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'zp', 'country', 'ct', 'db', 'ge'];
       advancedMatching = amKeys.some((k) => k in params);
-    } catch { /* skip parse errors */ }
+    } catch {
+      try {
+        const params = new Function(`return (${html.slice(start, end)})`)();
+        const amKeys = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'zp', 'country', 'ct', 'db', 'ge'];
+        advancedMatching = amKeys.some((k) => k in params);
+      } catch { /* skip */ }
+    }
   }
 
   // --- HTTPS check ---
