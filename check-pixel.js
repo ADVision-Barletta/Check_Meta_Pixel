@@ -242,12 +242,13 @@ async function checkSiteBrowser(rawUrl, browser) {
       pixelId: ids[0] || null,
       pixelIds: ids,
       events: [...events],
+      eventDetails: fbqCalls.eventDetails || null,
       viaGTM: gtmDetected,
       warnings: [],
       browserChecked: true,
     };
   } catch (err) {
-    return { present: false, pixelId: null, pixelIds: [], events: [], viaGTM: false, warnings: [], error: err.message, browserChecked: true };
+    return { present: false, pixelId: null, pixelIds: [], events: [], eventDetails: null, viaGTM: false, warnings: [], error: err.message, browserChecked: true };
   }
 }
 
