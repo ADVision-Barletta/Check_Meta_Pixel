@@ -498,7 +498,7 @@ async function main() {
       for (const r of needBrowser) {
         process.stdout.write(`   ${formatSite(r.url)}...`);
         const b = await checkSiteBrowser(r.url, browser);
-        Object.assign(r, b, { viaGTM: true });
+        Object.assign(r, b, { viaGTM: r.viaGTM || b.viaGTM });
         r.note = b.present
           ? `Rilevato via browser: Pixel ID ${b.pixelId || '?'}`
           : b.error
