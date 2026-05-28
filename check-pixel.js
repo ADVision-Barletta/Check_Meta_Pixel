@@ -244,37 +244,13 @@ async function checkSite(rawUrl) {
     const html = await res.text();
     const pixel = detectPixel(html);
 
-    // If pixel not found via static HTML but GTM is present, do a browser check
-    if (!pixel.present && pixel.viaGTM && res.status < 400) {
-      const browserResult = await checkSiteBrowser(rawUrl);
-      return {
-        url: rawUrl,
-        status: res.status,
-        reachable: true,
-        viaGTM: true,
-        ...pixel,
-        ...browserResult,
-        note: browserResult.present
-          ? browserResult.pixelId
-            ? `Rilevato via browser: Pixel ID ${browserResult.pixelId}`
-            : 'Rilevato via browser'
-          : (browserResult.error
-            ? `Browser check fallito: ${browserResult.error}`
-            : 'Caricamento dinamico confermato ma pixel non rilevato'),
-      };
-    }
-
-    return {
-      url: rawUrl,
-      status: res.status,
-      reachable: res.status < 400,
+    const base = {
+      url: rawUrl, status: res.status, reachable: res.status < 400,
       ...pixel,
-      note: !pixel.present
-        ? res.status >= 400
-          ? `HTTP ${res.status} — risposta non valida, pixel non verificabile`
-          : null
-        : null,
+      note: null,
     };
+
+    return base;
   } catch (err) {
     return {
       url: rawUrl, status: 0, reachable: false, present: false,
