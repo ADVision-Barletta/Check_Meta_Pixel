@@ -92,7 +92,10 @@ function detectPixel(html) {
     }
     try {
       const raw = html.slice(start, end);
-      const params = JSON.parse(raw.replace(/'/g, '"'));
+      const clean = raw
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
+        .replace(/'/g, '"');
+      const params = JSON.parse(clean);
       const amKeys = ['em', 'ph', 'fn', 'ln', 'ct', 'st', 'zp', 'country', 'ct', 'db', 'ge'];
       advancedMatching = amKeys.some((k) => k in params);
     } catch {
