@@ -1,7 +1,9 @@
 {
   "email": "francesco.dicandia@gmail.com",
   "time": "17:00",
-  "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "days": [
+    "Mon"
+  ],
   "sites": [
     "https://www.urusristorante.it",
     "https://www.advisionagency.it",
