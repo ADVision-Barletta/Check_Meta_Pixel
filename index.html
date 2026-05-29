@@ -25,12 +25,34 @@ button{background:#1e3a5f;color:#fff;border:none;padding:.6rem 1.2rem;border-rad
 button:hover{background:#2c5282}
 button.secondary{background:#6b7280}
 button.secondary:hover{background:#4b5563}
+button:disabled{opacity:.5;cursor:not-allowed}
 .toast{padding:.75rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.9rem;display:none}
 .toast.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
 .toast.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
 .status{font-size:.85rem;color:#6b7280;margin-top:.5rem}
 code{background:#e5e7eb;padding:.15rem .4rem;border-radius:3px;font-size:.85rem}
-@media(max-width:500px){.row{flex-direction:column}}
+a{color:#2563eb}
+
+/* Status panel */
+.status-card{padding:1.25rem}
+.status-header{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.pulse{width:12px;height:12px;border-radius:50%;background:#9ca3af;flex-shrink:0}
+.pulse.pending{background:#f59e0b;animation:pulse 1s infinite}
+.pulse.in_progress{background:#3b82f6;animation:pulse 1s infinite}
+.pulse.completed{background:#22c55e}
+.pulse.failure{background:#ef4444}
+.pulse.skipped{background:#9ca3af}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-steps{margin:.5rem 0}
+.step{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-radius:4px;font-size:.85rem}
+.step.active{background:#eff6ff;font-weight:600}
+.step.done{color:#6b7280}
+.step .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.step .dot.pending{background:#d1d5db}
+.step .dot.done{background:#22c55e}
+.step .dot.running{background:#3b82f6;animation:pulse .8s infinite}
+.step .dot.fail{background:#ef4444}
+.status-link{margin-top:.75rem;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -91,16 +113,34 @@ code{background:#e5e7eb;padding:.15rem .4rem;border-radius:3px;font-size:.85rem}
     <div class="card">
       <div class="actions">
         <button id="saveBtn" onclick="save()">💾 Salva configurazione</button>
-        <button class="secondary" onclick="testScan()">▶️ Avvia scan ora</button>
+        <button class="secondary" id="scanBtn" onclick="testScan()">▶️ Avvia scan ora</button>
       </div>
-      <p id="lastScan" class="status"></p>
+    </div>
+
+    <div class="card" id="statusCard" style="display:none">
+      <div class="status-header">
+        <span class="pulse" id="statusDot"></span>
+        <span id="statusText">...</span>
+        <span style="margin-left:auto;font-size:.8rem;color:#9ca3af" id="statusElapsed"></span>
+      </div>
+      <div class="status-steps" id="statusSteps"></div>
+      <div class="status-link" id="statusLink"></div>
     </div>
   </div>
 </main>
 
 <script>
 const REPO = 'ADVision-Barletta/Check_Meta_Pixel';
+const STATUS_LABELS = {
+  queued: 'In coda...',
+  in_progress: 'Scansione in corso...',
+  completed_success: '✅ Scan completato',
+  completed_failure: '❌ Scan fallito',
+  completed_skipped: '⏭️ Scan saltato (orario/giorno non configurati)',
+};
+
 let token = localStorage.getItem('gh_token') || '';
+let pollTimer = null;
 
 function $(id) { return document.getElementById(id); }
 
@@ -186,11 +226,84 @@ async function save() {
   }
 }
 
+// --- Live scan status ---
+
+function updateStatusPanel(run) {
+  const dot = $('statusDot');
+  const text = $('statusText');
+  const link = $('statusLink');
+  const steps = $('statusSteps');
+
+  const status = run.status;
+  const conclusion = run.conclusion;
+  const key = conclusion ? `${status}_${conclusion}` : status;
+
+  dot.className = 'pulse';
+  text.textContent = STATUS_LABELS[key] || '...';
+
+  if (status === 'in_progress') dot.classList.add('in_progress');
+  else if (conclusion === 'success') dot.classList.add('completed');
+  else if (conclusion === 'failure') dot.classList.add('failure');
+  else if (conclusion === 'skipped') dot.classList.add('skipped');
+  else dot.classList.add('pending');
+
+  steps.innerHTML = status === 'in_progress'
+    ? '<p style="color:#6b7280;font-size:.85rem">Lo scan è in esecuzione. I log completi sono disponibili su GitHub.</p>'
+    : '';
+
+  link.innerHTML = `<a href="${run.html_url}" target="_blank">📋 Vedi log completo su GitHub →</a>`;
+}
+
+async function pollStatus() {
+  try {
+    const runs = await api('GET', '/actions/workflows/scan.yml/runs?per_page=1&event=workflow_dispatch');
+    if (!runs.workflow_runs || !runs.workflow_runs.length) return;
+
+    const run = runs.workflow_runs[0];
+    const created = new Date(run.created_at);
+    const elapsed = Math.round((Date.now() - created) / 1000);
+    $('statusElapsed').textContent = `${elapsed}s`;
+
+    if (run.status !== 'completed') {
+      const jobs = await api('GET', `/actions/runs/${run.id}/jobs`).catch(() => ({ jobs: [] }));
+      run._jobs = jobs.jobs || [];
+    }
+
+    updateStatusPanel(run);
+
+    const conclusion = run.conclusion;
+    if (run.status === 'completed') {
+      clearInterval(pollTimer);
+      pollTimer = null;
+      $('scanBtn').disabled = false;
+    }
+  } catch (err) {
+    // silently retry
+  }
+}
+
 async function testScan() {
   try {
+    $('statusCard').style.display = 'block';
+    $('statusText').textContent = 'Avvio scan...';
+    $('statusDot').className = 'pulse pending';
+    $('statusSteps').innerHTML = '';
+    $('statusLink').innerHTML = '';
+    $('statusElapsed').textContent = '';
+    $('scanBtn').disabled = true;
+
+    if (pollTimer) clearInterval(pollTimer);
+
     await api('POST', '/actions/workflows/scan.yml/dispatches', { ref: 'master' });
-    show('✅ Scan avviato! Controlla Actions su GitHub', true);
+
+    show('✅ Scan avviato!', true);
+
+    // Wait a few seconds then start polling
+    await new Promise(r => setTimeout(r, 3000));
+    await pollStatus();
+    pollTimer = setInterval(pollStatus, 5000);
   } catch (err) {
+    $('scanBtn').disabled = false;
     show('Errore: ' + err.message, false);
   }
 }
