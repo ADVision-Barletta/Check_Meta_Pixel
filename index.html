@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta Pixel Check — Configurazione</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f6;color:#1f2937;padding:2rem 1rem}
+main{max-width:720px;margin:0 auto}
+h1{font-size:1.4rem;color:#1e3a5f;margin-bottom:.25rem}
+p.sub{color:#6b7280;font-size:.9rem;margin-bottom:1.5rem}
+.card{background:#fff;border-radius:8px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:1rem}
+label{display:block;font-weight:600;font-size:.9rem;color:#374151;margin-bottom:.3rem}
+input,select,textarea{width:100%;padding:.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:.95rem;font-family:inherit}
+textarea{min-height:200px;font-family:monospace;font-size:.85rem}
+input:focus,textarea:focus{outline:2px solid #1e3a5f;outline-offset:-1px}
+.row{display:flex;gap:1rem}
+.row>*{flex:1}
+.check-group{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem}
+.check-group label{font-weight:400;font-size:.9rem;display:flex;align-items:center;gap:.3rem}
+.check-group input[type=checkbox]{width:auto}
+.actions{display:flex;gap:.75rem;margin-top:1rem}
+button{background:#1e3a5f;color:#fff;border:none;padding:.6rem 1.2rem;border-radius:6px;cursor:pointer;font-size:.95rem}
+button:hover{background:#2c5282}
+button.secondary{background:#6b7280}
+button.secondary:hover{background:#4b5563}
+.toast{padding:.75rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.9rem;display:none}
+.toast.ok{display:block;background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.toast.err{display:block;background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.status{font-size:.85rem;color:#6b7280;margin-top:.5rem}
+code{background:#e5e7eb;padding:.15rem .4rem;border-radius:3px;font-size:.85rem}
+@media(max-width:500px){.row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<main>
+  <h1>⚙️ Meta Pixel Check</h1>
+  <p class="sub">Configura lo scan automatico che viene eseguito su GitHub Actions</p>
+
+  <div id="toast" class="toast"></div>
+
+  <div class="card" id="loginCard">
+    <label>GitHub Personal Access Token</label>
+    <input type="password" id="tokenInput" placeholder="ghp_...">
+    <p class="status">Serve un token con permessi <code>repo</code> per leggere/scrivere config.json su GitHub.
+    <a href="https://github.com/settings/tokens/new?scopes=repo&description=CheckMetaPixel" target="_blank">Crea token</a></p>
+    <div class="actions"><button onclick="login()">Collegati</button></div>
+  </div>
+
+  <div id="configCard" style="display:none">
+    <div class="card">
+      <label>Email destinatario report</label>
+      <input type="email" id="emailInput" placeholder="report@azienda.it">
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Orario scan</label>
+          <input type="time" id="timeInput">
+        </div>
+        <div>
+          <label>Fuso orario</label>
+          <select id="timezoneInput">
+            <option value="Europe/Rome" selected>Europa/Roma (UTC+1/+2)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Giorni della settimana</label>
+      <div class="check-group" id="daysGroup">
+        <label><input type="checkbox" value="Mon"> Lun</label>
+        <label><input type="checkbox" value="Tue"> Mar</label>
+        <label><input type="checkbox" value="Wed"> Mer</label>
+        <label><input type="checkbox" value="Thu"> Gio</label>
+        <label><input type="checkbox" value="Fri"> Ven</label>
+        <label><input type="checkbox" value="Sat"> Sab</label>
+        <label><input type="checkbox" value="Sun"> Dom</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Siti da controllare (un URL per riga)</label>
+      <textarea id="sitesInput" placeholder="https://www.esempio.it"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="actions">
+        <button id="saveBtn" onclick="save()">💾 Salva configurazione</button>
+        <button class="secondary" onclick="testScan()">▶️ Avvia scan ora</button>
+      </div>
+      <p id="lastScan" class="status"></p>
+    </div>
+  </div>
+</main>
+
+<script>
+const REPO = 'ADVision-Barletta/Check_Meta_Pixel';
+let token = localStorage.getItem('gh_token') || '';
+
+function $(id) { return document.getElementById(id); }
+
+function show(msg, ok) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (ok ? 'ok' : 'err');
+  setTimeout(() => { t.style.display = 'none'; }, 5000);
+}
+
+async function api(method, path, body) {
+  const r = await fetch(`https://api.github.com/repos/${REPO}${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({ message: r.statusText }));
+    throw new Error(e.message);
+  }
+  return r.json();
+}
+
+function login() {
+  const t = $('tokenInput').value.trim();
+  if (!t) return show('Inserisci il token', false);
+  token = t;
+  localStorage.setItem('gh_token', t);
+  loadConfig();
+}
+
+function logout() {
+  token = '';
+  localStorage.removeItem('gh_token');
+  $('loginCard').style.display = 'block';
+  $('configCard').style.display = 'none';
+  show('Disconnesso', true);
+}
+
+async function loadConfig() {
+  try {
+    $('loginCard').style.display = 'none';
+    $('configCard').style.display = 'block';
+
+    const data = await api('GET', '/contents/config.json');
+    const cfg = JSON.parse(atob(data.content.replace(/\n/g, '')));
+    window._configSha = data.sha;
+
+    $('emailInput').value = cfg.email || '';
+    $('timeInput').value = cfg.time || '17:00';
+    $('sitesInput').value = (cfg.sites || []).join('\n');
+
+    document.querySelectorAll('#daysGroup input').forEach(cb => {
+      cb.checked = (cfg.days || []).includes(cb.value);
+    });
+  } catch (err) {
+    show('Errore caricamento: ' + err.message, false);
+  }
+}
+
+async function save() {
+  const days = [...document.querySelectorAll('#daysGroup input:checked')].map(cb => cb.value);
+  const sites = $('sitesInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+
+  const cfg = {
+    email: $('emailInput').value.trim(),
+    time: $('timeInput').value,
+    days,
+    sites,
+  };
+
+  try {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(cfg, null, 2))));
+    await api('PUT', '/contents/config.json', {
+      message: 'auto: aggiornata configurazione',
+      content,
+      sha: window._configSha,
+    });
+    window._configSha = (await api('GET', '/contents/config.json')).sha;
+    show('✅ Configurazione salvata su GitHub!', true);
+  } catch (err) {
+    show('Errore salvataggio: ' + err.message, false);
+  }
+}
+
+async function testScan() {
+  try {
+    await api('POST', '/actions/workflows/scan.yml/dispatches', { ref: 'master' });
+    show('✅ Scan avviato! Controlla Actions su GitHub', true);
+  } catch (err) {
+    show('Errore: ' + err.message, false);
+  }
+}
+
+if (token) { loadConfig(); }
+</script>
+</body>
+</html>

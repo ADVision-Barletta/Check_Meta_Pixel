@@ -1,0 +1,46 @@
+name: Scan programmato
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Imposta Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installa Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser --no-install-recommends
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Verifica schedulazione (giorno + orario da config.json)
+        id: schedule
+        run: |
+          node scheduler.js && echo "run=true" >> "$GITHUB_OUTPUT" || echo "run=false" >> "$GITHUB_OUTPUT"
+
+      - name: Genera sites.txt da config.json
+        if: steps.schedule.outputs.run == 'true'
+        run: jq -r '.sites[]' config.json > sites.txt
+
+      - name: Esegui scan e invia report
+        if: steps.schedule.outputs.run == 'true'
+        run: |
+          EMAIL=$(jq -r '.email' config.json)
+          node check-pixel.js --email-to "$EMAIL"
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}

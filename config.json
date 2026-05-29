@@ -1,0 +1,25 @@
+{
+  "email": "francesco.dicandia@gmail.com",
+  "time": "17:00",
+  "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "sites": [
+    "https://www.urusristorante.it",
+    "https://www.advisionagency.it",
+    "https://www.sportslabtraining.it",
+    "https://www.autoscuolapitstopbarletta.it",
+    "https://www.vitranigioielliere.it",
+    "https://www.denichiloinox.it",
+    "https://www.coronadellepuglie.it",
+    "https://www.casavespina.it",
+    "https://www.chicchidicaffe.org",
+    "https://www.cumiraviaggi.it",
+    "https://www.edilservicebarletta.com",
+    "https://www.eliopalumbieri.it",
+    "https://www.ggn.it",
+    "https://www.iamafoodtek.it",
+    "https://www.masquearteeristoro.it/",
+    "https://www.centroantiviolenzagiuliaerossella.it",
+    "https://www.studiodentisticorizzi.it",
+    "https://www.tipstour.it"
+  ]
+}
