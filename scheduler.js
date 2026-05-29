@@ -11,6 +11,13 @@ try {
   const itTime = now.toLocaleString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
   const itDay = now.toLocaleString('en-US', { timeZone: 'Europe/Rome', weekday: 'short' });
 
+  // Manual dispatch bypasses day/time check
+  const event = process.env.GITHUB_EVENT_NAME;
+  if (event === 'workflow_dispatch') {
+    console.log(`[scheduler] Trigger manuale — esecuzione`);
+    process.exit(0);
+  }
+
   if (!cfg.days?.includes(itDay)) {
     console.log(`[scheduler] ${itDay} non in lista, skip`);
     process.exit(78);
