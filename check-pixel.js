@@ -500,7 +500,7 @@ async function main() {
       browser = await puppeteer.launch({
         executablePath: getChromePath(),
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
       });
 
       for (const r of needBrowser) {
@@ -547,4 +547,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((err) => {
+  console.error('[FATAL]', err);
+  process.exit(1);
+});
