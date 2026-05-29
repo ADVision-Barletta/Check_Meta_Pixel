@@ -1,6 +1,8 @@
 {
   "email": "francesco.dicandia@gmail.com",
   "time": "17:00",
+  "frequency": "monthly",
+  "monthDay": 1,
   "days": [
     "Mon"
   ],
