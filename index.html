@@ -165,7 +165,10 @@ function show(msg, ok) {
   t.className = 'toast ' + (ok ? 'ok' : 'err');
   t.style.display = 'block';
   clearTimeout(t._hideTimer);
-  t._hideTimer = setTimeout(() => { t.style.display = 'none'; }, 5000);
+  t._hideTimer = setTimeout(() => {
+    t.style.display = '';
+    t.className = 'toast';
+  }, 5000);
 }
 
 async function api(method, path, body) {
