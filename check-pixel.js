@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { accessSync, readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -452,18 +454,20 @@ function printReport(results, { dateStr, timeStr }) {
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const flags = { sitesFile: SITES_FILE, logDir: LOG_DIR };
+  const flags = { sitesFile: SITES_FILE, logDir: LOG_DIR, emailTo: '' };
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--sites': flags.sitesFile = join(__dirname, args[++i] || ''); break;
       case '--timeout': TIMEOUT_MS = parseInt(args[++i]) || TIMEOUT_MS; break;
       case '--output': flags.logDir = args[++i] || flags.logDir; break;
+      case '--email-to': flags.emailTo = args[++i] || ''; break;
       case '--help':
         console.log(`Usage: node check-pixel.js [options]
 
   --sites <file>    Lista siti (default: sites.txt)
   --timeout <ms>    Timeout fetch per sito (default: 15000)
   --output <dir>    Cartella report (default: logs/)
+  --email-to <addr> Invia report via email (usa variabili d'ambiente SMTP_*)
   --help            Mostra questo aiuto`);
         process.exit(0);
     }
@@ -529,6 +533,18 @@ async function main() {
   const timeStr = now.toISOString().slice(11, 19);
   const reportText = printReport(results, { dateStr, timeStr });
   logReport(results, reportText, flags.logDir);
+
+  const emailTo = flags.emailTo || process.env.EMAIL_TO;
+  if (emailTo) {
+    process.env.EMAIL_TO = emailTo;
+    try {
+      const { sendEmailReport } = await import('./notify.js');
+      await sendEmailReport(results, dateStr, timeStr);
+      console.log(`[email] ✅ Report inviato a ${emailTo}`);
+    } catch (err) {
+      console.log(`[email] ⚠️ Invio fallito: ${err.message}`);
+    }
+  }
 }
 
 main();

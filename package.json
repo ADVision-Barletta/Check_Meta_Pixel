@@ -6,13 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node check-pixel.js",
-    "server": "node server.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "basic-auth": "^2.0.1",
-    "ejs": "^3.1.10",
-    "express": "^4.21.0",
+    "dotenv": "^17.4.2",
+    "nodemailer": "^8.0.10",
     "puppeteer-core": "^25.1.0"
   }
 }
