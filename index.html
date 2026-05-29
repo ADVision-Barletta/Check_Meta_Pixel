@@ -256,10 +256,13 @@ function updateStatusPanel(run) {
 
 async function pollStatus() {
   try {
-    const runs = await api('GET', '/actions/workflows/scan.yml/runs?per_page=1&event=workflow_dispatch');
+    const runs = await api('GET', '/actions/workflows/scan.yml/runs?per_page=5');
     if (!runs.workflow_runs || !runs.workflow_runs.length) return;
 
-    const run = runs.workflow_runs[0];
+    // Find the run triggered after we dispatched (filters out stale runs)
+    const run = runs.workflow_runs.find(r => new Date(r.created_at) > window._dispatchTime);
+    if (!run) return;
+
     const created = new Date(run.created_at);
     const elapsed = Math.round((Date.now() - created) / 1000);
     $('statusElapsed').textContent = `${elapsed}s`;
@@ -294,12 +297,13 @@ async function testScan() {
 
     if (pollTimer) clearInterval(pollTimer);
 
+    window._dispatchTime = new Date();
     await api('POST', '/actions/workflows/scan.yml/dispatches', { ref: 'master' });
 
     show('✅ Scan avviato!', true);
 
     // Wait a few seconds then start polling
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 5000));
     await pollStatus();
     pollTimer = setInterval(pollStatus, 5000);
   } catch (err) {
