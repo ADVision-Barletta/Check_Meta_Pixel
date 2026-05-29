@@ -41,7 +41,7 @@ Poi imposta gli stessi valori come **Actions secrets** su GitHub:
 ### 3. Configurazione via web (consigliata)
 
 Apri `index.html` nel browser, inserisci un **GitHub Personal Access Token** (permessi `repo`) e configura:
-- Email destinatario del report
+- Email destinatario del report (uno o più indirizzi separati da `;`)
 - Orario e frequenza scan (giornaliero, settimanale o mensile)
 - Lista siti da controllare
 

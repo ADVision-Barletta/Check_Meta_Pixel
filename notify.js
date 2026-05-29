@@ -70,8 +70,9 @@ export async function sendEmailReport(results, dateStr, timeStr) {
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     throw new Error('SMTP non configurato (servono SMTP_HOST, SMTP_USER, SMTP_PASS)');
   }
-  const to = process.env.EMAIL_TO;
+  let to = process.env.EMAIL_TO || '';
   if (!to) throw new Error('EMAIL_TO non impostato');
+  to = to.split(';').map(s => s.trim()).filter(Boolean).join(',');
 
   const transporter = createTransport({
     host: SMTP_HOST,
