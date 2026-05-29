@@ -10,6 +10,7 @@ try {
   const now = new Date();
   const itTime = now.toLocaleString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false });
   const itDay = now.toLocaleString('en-US', { timeZone: 'Europe/Rome', weekday: 'short' });
+  const itDate = now.toLocaleString('it-IT', { timeZone: 'Europe/Rome', day: 'numeric' });
 
   // Manual dispatch bypasses day/time check
   const event = process.env.GITHUB_EVENT_NAME;
@@ -18,10 +19,21 @@ try {
     process.exit(0);
   }
 
-  if (!cfg.days?.includes(itDay)) {
-    console.log(`[scheduler] ${itDay} non in lista, skip`);
-    process.exit(78);
+  const freq = cfg.frequency || 'weekly';
+
+  if (freq === 'monthly') {
+    const monthDay = cfg.monthDay || 1;
+    if (parseInt(itDate) !== monthDay) {
+      console.log(`[scheduler] Oggi è il ${itDate}, atteso giorno ${monthDay}, skip`);
+      process.exit(78);
+    }
+  } else if (freq === 'weekly') {
+    if (!cfg.days?.includes(itDay)) {
+      console.log(`[scheduler] ${itDay} non in lista, skip`);
+      process.exit(78);
+    }
   }
+  // daily: no day check
 
   if (cfg.time !== itTime) {
     console.log(`[scheduler] Sono le ${itTime}, attesa ${cfg.time}, skip`);

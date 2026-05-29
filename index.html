@@ -93,6 +93,15 @@ a{color:#2563eb}
     </div>
 
     <div class="card">
+      <label>Frequenza</label>
+      <div class="check-group" id="freqGroup">
+        <label><input type="radio" name="frequency" value="weekly" checked> Giorni specifici (settimanale)</label>
+        <label><input type="radio" name="frequency" value="daily"> Ogni giorno</label>
+        <label><input type="radio" name="frequency" value="monthly"> Una volta al mese</label>
+      </div>
+    </div>
+
+    <div class="card" id="daysCard">
       <label>Giorni della settimana</label>
       <div class="check-group" id="daysGroup">
         <label><input type="checkbox" value="Mon"> Lun</label>
@@ -103,6 +112,12 @@ a{color:#2563eb}
         <label><input type="checkbox" value="Sat"> Sab</label>
         <label><input type="checkbox" value="Sun"> Dom</label>
       </div>
+    </div>
+
+    <div class="card" id="monthDayCard" style="display:none">
+      <label>Giorno del mese</label>
+      <input type="number" id="monthDayInput" min="1" max="31" value="1">
+      <p class="status">Lo scan verrà eseguito il giorno <span id="monthDayLabel">1</span> di ogni mese</p>
     </div>
 
     <div class="card">
@@ -181,6 +196,23 @@ function logout() {
   show('Disconnesso', true);
 }
 
+function toggleFreq(freq) {
+  $('daysCard').style.display = freq === 'weekly' ? 'block' : 'none';
+  $('monthDayCard').style.display = freq === 'monthly' ? 'block' : 'none';
+}
+
+function updateMonthDayLabel() {
+  const v = $('monthDayInput').value;
+  $('monthDayLabel').textContent = v;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#freqGroup input').forEach(r => {
+    r.addEventListener('change', () => toggleFreq(r.value));
+  });
+  $('monthDayInput').addEventListener('input', updateMonthDayLabel);
+});
+
 async function loadConfig() {
   try {
     $('loginCard').style.display = 'none';
@@ -193,6 +225,15 @@ async function loadConfig() {
     $('emailInput').value = cfg.email || '';
     $('timeInput').value = cfg.time || '17:00';
     $('sitesInput').value = (cfg.sites || []).join('\n');
+
+    const freq = cfg.frequency || 'weekly';
+    document.querySelectorAll('#freqGroup input').forEach(r => {
+      r.checked = r.value === freq;
+    });
+    toggleFreq(freq);
+
+    $('monthDayInput').value = cfg.monthDay || 1;
+    updateMonthDayLabel();
 
     document.querySelectorAll('#daysGroup input').forEach(cb => {
       cb.checked = (cfg.days || []).includes(cb.value);
@@ -209,7 +250,9 @@ async function save() {
   const cfg = {
     email: $('emailInput').value.trim(),
     time: $('timeInput').value,
-    days,
+    frequency: $('freqGroup').querySelector('input:checked')?.value || 'weekly',
+    monthDay: parseInt($('monthDayInput').value) || 1,
+    days: [...document.querySelectorAll('#daysGroup input:checked')].map(cb => cb.value),
     sites,
   };
 
