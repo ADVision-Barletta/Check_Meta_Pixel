@@ -163,7 +163,9 @@ function show(msg, ok) {
   const t = $('toast');
   t.textContent = msg;
   t.className = 'toast ' + (ok ? 'ok' : 'err');
-  setTimeout(() => { t.style.display = 'none'; }, 5000);
+  t.style.display = 'block';
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => { t.style.display = 'none'; }, 5000);
 }
 
 async function api(method, path, body) {
