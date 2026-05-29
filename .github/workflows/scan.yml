@@ -39,7 +39,8 @@ jobs:
       - name: Esegui scan e invia report
         if: steps.schedule.outputs.run == 'true'
         run: |
-          EMAIL=$(jq -r '.email' config.json)
+          EMAIL=$(jq -r '.email // empty' config.json)
+          if [ -z "$EMAIL" ]; then echo "Email non configurata"; exit 1; fi
           node check-pixel.js --email-to "$EMAIL"
         env:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
