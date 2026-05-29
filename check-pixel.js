@@ -1,11 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { accessSync, readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolve4 } from 'node:dns/promises';
-import puppeteer from 'puppeteer-core';
-import { execFileSync } from 'node:child_process';
+import puppeteer from 'puppeteer';
 
 const KNOWN_EVENTS = new Set([
   'PageView', 'ViewContent', 'AddToCart', 'AddToWishlist',
@@ -154,32 +153,6 @@ function formatSite(url) {
     .replace(/^https?:\/\//, '')
     .replace(/\/.*$/, '')
     .replace(/^www\./, '');
-}
-
-function getChromePath() {
-  if (process.platform === 'win32') {
-    try {
-      const out = execFileSync('reg', ['query', 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe', '/ve'], { encoding: 'utf-8', timeout: 5000 });
-      const match = out.match(/REG_SZ\s+(.+)/);
-      if (match) return match[1].trim();
-    } catch { /* fallback */ }
-    return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  }
-  if (process.platform === 'darwin') {
-    const paths = [
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      '/Applications/Chrome.app/Contents/MacOS/Chrome',
-    ];
-    for (const p of paths) {
-      try { accessSync(p); return p; } catch {}
-    }
-    return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-  }
-  try {
-    const out = execFileSync('which', ['google-chrome', 'chromium-browser', 'chromium'], { encoding: 'utf-8', timeout: 5000 });
-    return out.trim().split('\n')[0];
-  } catch {}
-  return 'google-chrome';
 }
 
 async function checkSiteBrowser(rawUrl, browser) {
@@ -498,7 +471,6 @@ async function main() {
     let browser;
     try {
       browser = await puppeteer.launch({
-        executablePath: getChromePath(),
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
       });
